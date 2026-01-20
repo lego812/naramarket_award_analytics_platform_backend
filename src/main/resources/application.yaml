@@ -26,6 +26,6 @@ spring:
 
 award:
   api:
-    base-url: https://apis.data.go.kr/1230000/as/ScsbidInfoService/getScsbidListSttusServcPPSSrch
+    base-url: ${AWARD_API_SERVICE_URL}
     service-key: ${AWARD_API_SERVICE_KEY}
     inqry-div: "1"

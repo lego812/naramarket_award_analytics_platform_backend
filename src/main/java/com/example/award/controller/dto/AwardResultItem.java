@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class AwardResultItem {
     private String bidNtceNo;
     private String bidNtceOrd;
@@ -19,10 +21,13 @@ public class AwardResultItem {
     private String bidwinnrTelNo;
     private Long sucsfbidAmt;
     private BigDecimal sucsfbidRate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime rlOpengDt;
     private String dminsttCd;
     private String dminsttNm;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime rgstDt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fnlSucsfDate;
     private String fnlSucsfCorpOfcl;
 
