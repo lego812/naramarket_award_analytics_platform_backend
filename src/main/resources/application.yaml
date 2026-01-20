@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: award
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:tcp://localhost/~/award}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+  jackson:
+    time-zone: Asia/Seoul
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        #        globally_quoted_identifiers: true
+        jdbc:
+          time_zone: Asia/Seoul
+  config:
+    import: optional:file:.env[.properties]
+
+award:
+  api:
+    base-url: https://apis.data.go.kr/1230000/as/ScsbidInfoService/getScsbidListSttusServcPPSSrch
+    service-key: ${AWARD_API_SERVICE_KEY}
+    inqry-div: "1"
