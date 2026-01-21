@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 env:
-  IMAGE_NAME: award-app
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/award-app
   CONTAINER_NAME: award-app
 
 jobs:
@@ -18,21 +18,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build image
-        run: docker build -t $IMAGE_NAME:${{ github.sha }} .
-
-      - name: Save image
-        run: docker save $IMAGE_NAME:${{ github.sha }} | gzip > image.tar.gz
-
-      - name: Copy image to EC2
-        uses: appleboy/scp-action@v0.1.7
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          host: 43.202.210.79
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          source: "image.tar.gz"
-          target: "/tmp"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
 
       - name: Load and run on EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -43,7 +45,8 @@ jobs:
           port: 22
           script: |
             set -e
-            docker load < /tmp/image.tar.gz
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull $IMAGE_NAME:${{ github.sha }}
             docker stop $CONTAINER_NAME || true
             docker rm $CONTAINER_NAME || true
             docker run -d --name $CONTAINER_NAME \
@@ -51,4 +54,3 @@ jobs:
               -e AWARD_API_SERVICE_KEY='${{ secrets.AWARD_API_SERVICE_KEY }}' \
               -e AWARD_API_SERVICE_URL='${{ secrets.AWARD_API_SERVICE_URL }}' \
               $IMAGE_NAME:${{ github.sha }}
-            rm -f /tmp/image.tar.gz
