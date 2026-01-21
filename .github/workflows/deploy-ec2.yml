@@ -1,0 +1,54 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  IMAGE_NAME: award-app
+  CONTAINER_NAME: award-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        run: docker build -t $IMAGE_NAME:${{ github.sha }} .
+
+      - name: Save image
+        run: docker save $IMAGE_NAME:${{ github.sha }} | gzip > image.tar.gz
+
+      - name: Copy image to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 43.202.210.79
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "image.tar.gz"
+          target: "/tmp"
+
+      - name: Load and run on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 43.202.210.79
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            docker load < /tmp/image.tar.gz
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
+            docker run -d --name $CONTAINER_NAME \
+              -p 127.0.0.1:8080:8080 \
+              -e AWARD_API_SERVICE_KEY='${{ secrets.AWARD_API_SERVICE_KEY }}' \
+              -e AWARD_API_SERVICE_URL='${{ secrets.AWARD_API_SERVICE_URL }}' \
+              $IMAGE_NAME:${{ github.sha }}
+            rm -f /tmp/image.tar.gz
