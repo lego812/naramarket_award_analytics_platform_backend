@@ -74,4 +74,8 @@ jobs:
               -p 127.0.0.1:8080:8080 \
               -e AWARD_API_SERVICE_KEY='${{ secrets.AWARD_API_SERVICE_KEY }}' \
               -e AWARD_API_SERVICE_URL='${{ secrets.AWARD_API_SERVICE_URL }}' \
+              -e SPRING_DATASOURCE_URL='${{ secrets.SPRING_DATASOURCE_URL }}' \
+              -e SPRING_DATASOURCE_USERNAME='${{ secrets.SPRING_DATASOURCE_USERNAME }}' \
+              -e SPRING_DATASOURCE_PASSWORD='${{ secrets.SPRING_DATASOURCE_PASSWORD }}' \
+              -e SPRING_DATASOURCE_DRIVER='${{ secrets.SPRING_DATASOURCE_DRIVER }}' \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
